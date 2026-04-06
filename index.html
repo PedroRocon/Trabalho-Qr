@@ -21,10 +21,25 @@
       margin: auto;
     }
 
-    #resultado {
+    #contador {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 40px;
       font-weight: bold;
+    }
+
+    /* ALERTA CENTRAL */
+    #alerta {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: black;
+      color: white;
+      padding: 20px 40px;
+      font-size: 24px;
+      border-radius: 10px;
+      display: none;
+      z-index: 999;
     }
   </style>
 </head>
@@ -35,13 +50,26 @@
 
 <div id="reader"></div>
 
-<h2 id="resultado">Aguardando leitura...</h2>
+<div id="contador">0</div>
+
+<div id="alerta"></div>
 
 <script>
 let registros = {};
 let ultimoScan = {};
+let total = 0;
 
-const TEMPO_LIMITE = 3 * 60 * 1000; // 3 minutos
+const TEMPO_LIMITE = 3 * 60 * 1000;
+
+function mostrarAlerta(msg) {
+    let alerta = document.getElementById("alerta");
+    alerta.innerText = msg;
+    alerta.style.display = "block";
+
+    setTimeout(() => {
+        alerta.style.display = "none";
+    }, 2000); // some em 2s
+}
 
 function onScanSuccess(decodedText) {
     try {
@@ -49,44 +77,43 @@ function onScanSuccess(decodedText) {
         let matricula = data.MatriculaAluno;
         let agora = Date.now();
 
-        // Verifica tempo de espera
         if (ultimoScan[matricula]) {
             let tempoPassado = agora - ultimoScan[matricula];
 
             if (tempoPassado < TEMPO_LIMITE) {
-                let tempoRestante = TEMPO_LIMITE - tempoPassado;
+                let restante = TEMPO_LIMITE - tempoPassado;
 
-                let minutos = Math.floor(tempoRestante / 60000);
-                let segundos = Math.floor((tempoRestante % 60000) / 1000);
+                let minutos = Math.floor(restante / 60000);
 
-                document.getElementById("resultado").innerText =
-                    `⏳ Aguarde ${minutos}m ${segundos}s para escanear novamente`;
-
+                mostrarAlerta(`⏳ Falta ${minutos} minuto(s)`);
                 return;
             }
         }
 
-        // Atualiza tempo do último scan
         ultimoScan[matricula] = agora;
 
-        // Conta refeições
         if (!registros[matricula]) {
             registros[matricula] = 0;
         }
 
         registros[matricula]++;
 
-        let status = registros[matricula] > 2 ? "BLOQUEADO ❌" : "LIBERADO ✅";
+        if (registros[matricula] > 2) {
+            mostrarAlerta("❌ BLOQUEADO");
+            return;
+        }
 
-        document.getElementById("resultado").innerText =
-            `Matrícula: ${matricula} | Refeições: ${registros[matricula]} | Status: ${status}`;
+        total++;
+        document.getElementById("contador").innerText = total;
+
+        mostrarAlerta("✅ Liberado");
 
     } catch (e) {
-        document.getElementById("resultado").innerText = "QR inválido";
+        mostrarAlerta("QR inválido");
     }
 }
 
-// Inicia scanner
+// scanner
 let scanner = new Html5QrcodeScanner("reader", {
     fps: 10,
     qrbox: 250
