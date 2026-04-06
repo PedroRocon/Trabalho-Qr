@@ -1,25 +1,32 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Controle de Refeições</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-<body>
-
-<h1>🍽 Controle de Refeições</h1>
-
-<div id="reader" style="width:300px;"></div>
-
-<h2 id="resultado">Aguardando leitura...</h2>
-
 <script>
 let registros = {};
+let ultimoScan = {};
+
+const TEMPO_LIMITE = 3 * 60 * 1000; // 3 minutos
 
 function onScanSuccess(decodedText) {
     try {
         let data = JSON.parse(decodedText);
         let matricula = data.MatriculaAluno;
+        let agora = Date.now();
+
+        if (ultimoScan[matricula]) {
+            let tempoPassado = agora - ultimoScan[matricula];
+
+            if (tempoPassado < TEMPO_LIMITE) {
+                let tempoRestante = TEMPO_LIMITE - tempoPassado;
+
+                let minutos = Math.floor(tempoRestante / 60000);
+                let segundos = Math.floor((tempoRestante % 60000) / 1000);
+
+                document.getElementById("resultado").innerText =
+                    `⏳ Aguarde ${minutos}m ${segundos}s para escanear novamente`;
+
+                return;
+            }
+        }
+
+        ultimoScan[matricula] = agora;
 
         if (!registros[matricula]) {
             registros[matricula] = 0;
@@ -30,19 +37,10 @@ function onScanSuccess(decodedText) {
         let status = registros[matricula] > 2 ? "BLOQUEADO ❌" : "LIBERADO ✅";
 
         document.getElementById("resultado").innerText =
-            "Matrícula: " + matricula +
-            " | Refeições: " + registros[matricula] +
-            " | Status: " + status;
+            `Matrícula: ${matricula} | Refeições: ${registros[matricula]} | Status: ${status}`;
 
     } catch (e) {
         document.getElementById("resultado").innerText = "QR inválido";
     }
 }
-
-let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-
-scanner.render(onScanSuccess);
 </script>
-
-</body>
-</html>
