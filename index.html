@@ -1,3 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Refeições</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+
+    #resultado {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🍽 Controle de Refeições</h1>
+
+<div id="reader"></div>
+
+<h2 id="resultado">Aguardando leitura...</h2>
+
 <script>
 let registros = {};
 let ultimoScan = {};
@@ -10,6 +49,7 @@ function onScanSuccess(decodedText) {
         let matricula = data.MatriculaAluno;
         let agora = Date.now();
 
+        // Verifica tempo de espera
         if (ultimoScan[matricula]) {
             let tempoPassado = agora - ultimoScan[matricula];
 
@@ -26,8 +66,10 @@ function onScanSuccess(decodedText) {
             }
         }
 
+        // Atualiza tempo do último scan
         ultimoScan[matricula] = agora;
 
+        // Conta refeições
         if (!registros[matricula]) {
             registros[matricula] = 0;
         }
@@ -43,4 +85,15 @@ function onScanSuccess(decodedText) {
         document.getElementById("resultado").innerText = "QR inválido";
     }
 }
+
+// Inicia scanner
+let scanner = new Html5QrcodeScanner("reader", {
+    fps: 10,
+    qrbox: 250
+});
+
+scanner.render(onScanSuccess);
 </script>
+
+</body>
+</html>
