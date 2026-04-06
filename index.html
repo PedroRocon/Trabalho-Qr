@@ -17,8 +17,8 @@
     }
 
     #reader {
-      width: 100%;
-      height: 900px;
+      width: 500px;
+      height: 700px;
       margin: auto;
     }
 
@@ -42,12 +42,6 @@
       display: none;
       z-index: 999;
     }
-
-    .container{
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
   </style>
 </head>
 
@@ -55,13 +49,11 @@
 
 <h1>🍽 Controle de Refeições</h1>
 
-<div class="container">
-  <div id="reader"></div>
-  
-  <div id="contador">0</div>
-  
-  <div id="alerta"></div>
-</div>
+<div id="reader"></div>
+
+<div id="contador">0</div>
+
+<div id="alerta"></div>
 
 <script>
 let registros = {};
